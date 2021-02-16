@@ -1,0 +1,291 @@
+<!doctype html>
+<html>
+<style>
+    .myProgress {
+        position: sticky;
+        top: 5px;
+        width: 100%;
+        background-color: #e4e3e3;
+        z-index: 10;
+    }
+
+    .myBar {
+        width: 100%;
+        height: 10px;
+        background-color: #28a745;
+    }
+</style>
+<head>
+    <title>Line Chart</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+          integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+    <style>
+        canvas {
+            -moz-user-select: none;
+            -webkit-user-select: none;
+            -ms-user-select: none;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="myProgress">
+    <div class="myBar"></div>
+</div>
+<div style="width:100%; padding: 20px">
+    <div class="row">
+        <div class="col-md-2 ">
+            <select name="" id="symbols" multiple class="form-control">
+                <option value="BTCUSDT">BTCUSDT</option>
+                <option value="DENTUSDT">DENTUSDT</option>
+                <option value="REEFUSDT">REEFUSDT</option>
+                <option value="MATICUSDT">MATICUSDT</option>
+                <option value="ALGOUSDT">ALGOUSDT</option>
+                <option value="VTHOUSDT">VTHOUSDT</option>
+            </select>
+            <br>
+
+        </div>
+        <div class="col-md-2">
+            <label>
+                Interval
+                <select name="interval" id="interval" class="form-control">
+                    <option value="1m" selected>1m</option>
+                    <option value="15m">15m</option>
+                    <option value="1d">1d</option>
+                </select>
+            </label>
+        </div>
+        <div class="col-md-2">
+            <label>
+                Taille
+                <input class="form-control" type="number" name="size" id="size" value="6">
+            </label>
+        </div>
+        <div class="col-md-2">
+            <button id="updateButton" class="btn btn-success">Update</button>
+
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <canvas id="canvas"></canvas>
+
+        </div>
+    </div>
+
+    <div class="lists row">
+        <div class="col-md-4">
+            <div class="card" style="width: 100%;">
+
+                <div class="card-header text-center font-weight-bold text-success">
+                    BUY
+                </div>
+                <div class="card-body">
+                    <div class="card-text buy-list"></div>
+                </div>
+            </div>
+        </div><div class="col-md-4">
+            <div class="card" style="width: 100%;">
+
+                <div class="card-header text-center font-weight-bold text-secondary">
+                    HOLD
+                </div>
+                <div class="card-body">
+                    <div class="card-text hold-list"></div>
+                </div>
+            </div>
+        </div><div class="col-md-4">
+            <div class="card" style="width: 100%;">
+
+                <div class="card-header text-center font-weight-bold text-danger">
+                    SELL
+                </div>
+                <div class="card-body">
+                    <div class="card-text sell-list"></div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+<br>
+<br>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.min.js" integrity="sha512-d9xgZrVZpmmQlfonhQUvTR7lMPtO7NkZMkA0ABN3PHCbKA5nqylQ/yWlFAyY6hYgdF1Qh6nYiuADWwKB4C2WSw==" crossorigin="anonymous"></script>
+<script
+    src="https://code.jquery.com/jquery-3.5.1.min.js"
+    integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0="
+    crossorigin="anonymous"></script>
+<script>
+    let datas = []
+    let labels = []
+    let min = []
+    let max = []
+    let i = 0
+
+    while (i < 170) {
+        i++;
+        min.push(20)
+        max.push(70)
+        labels.push(i)
+    }
+    let defaultDataSets = [
+        {
+            label: 'minimum',
+            backgroundColor: 'green',
+            borderColor: 'green',
+            pointRadius: 0,
+            data: min,
+            fill: false
+        }, {
+            label: 'maximum',
+            backgroundColor: 'red',
+            borderColor: 'red',
+            pointRadius: 0,
+            data: max,
+            fill: false
+        },
+    ]
+
+    var MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    let dataset = {
+        label: '',
+        backgroundColor: '',
+        borderColor: '',
+        datas: [],
+        fill: false
+
+    }
+    var config = {
+        type: 'line',
+        data: {
+            labels: labels,
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Chart.js Line Chart'
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                }
+            },
+            hover: {
+                mode: 'nearest',
+                intersect: true
+            },
+            scales: {
+                x: {
+                    display: true,
+                    scaleLabel: {
+                        display: true,
+                        labelString: 'Month'
+                    }
+                },
+                y: {
+                    display: true,
+                    scaleLabel: {
+                        display: true,
+                        labelString: 'Value'
+                    }
+                }
+            }
+        }
+    };
+    let t
+    var ctx = document.getElementById('canvas').getContext('2d');
+
+    $('#updateButton').on('click', () => {
+        if($('#symbols').val() == ''){
+            alert('Selectionne une crypto wesh')
+            return
+        }
+        clearInterval(t);
+        updateCharts()
+        t=setInterval(updateCharts,10000);
+
+    })
+    function move(i) {
+        if (i == 0) {
+            i = 1;
+            var elem = $('.myBar') ;
+            var width = 100;
+            var id = setInterval(frame, 10);
+            function frame() {
+                if (width <= 0) {
+                    clearInterval(id);
+                    i = 0;
+                } else {
+                    width-=0.1;
+                    $(elem).css('width',width+'%')
+                }
+            }
+        }
+    }
+
+
+    function getRandomColor() {
+        var letters = '0123456789ABCDEF';
+        var color = '#';
+        for (var i = 0; i < 6; i++) {
+            color += letters[Math.floor(Math.random() * 16)];
+        }
+        return color;
+    }
+
+    function setRandomColor() {
+        $("#colorpad").css("background-color", getRandomColor());
+    }
+
+    function updateCharts() {
+        move(0)
+        $('#canvas').empty()
+        $.ajax({
+            url: '/charts-infos',
+            data: {
+                symbols: $('#symbols').val(),
+                interval : $('#interval').val(),
+                size : $('#size').val()
+            }
+        }).then((response) => {
+            let datasets = []
+            datasets = defaultDataSets.slice(0);
+            console.log(datasets)
+            $('.buy-list, .sell-list, .hold-list').html('')
+            for (const [key, value] of Object.entries(response)) {
+                let color = getRandomColor()
+                datasets.push({
+                    label: key,
+                    backgroundColor: color,
+                    borderColor: color,
+                    pointRadius: 0,
+                    data: value['data'],
+                    fill: false
+                })
+                if(value['last'] < 30 ){
+                    $('.buy-list').append(`<div><span class="font-weight-bold">${key}</span> : ${value['last']}</div>`)
+                }
+                if(value['last'] >= 30 && value['last'] <= 70 ){
+                    $('.hold-list').append(`<div><span class="font-weight-bold">${key}</span> : ${value['last']}</div>`)
+                }
+                if(value['last'] > 70 ){
+                    $('.sell-list').append(`<div><span class="font-weight-bold">${key}</span> : ${value['last']}</div>`)
+                }
+
+
+            }
+            config['data']['datasets'] = datasets
+            window.myLine = new Chart(ctx, config);
+
+        })
+    }
+
+</script>
+</body>
+
+</html>
