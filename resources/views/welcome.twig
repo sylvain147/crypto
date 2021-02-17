@@ -110,6 +110,9 @@
         </div>
 
     </div>
+    <div class="bought-list">
+
+    </div>
 </div>
 <br>
 <br>
@@ -207,7 +210,6 @@
         }
         clearInterval(t);
         updateCharts()
-        t=setInterval(updateCharts,10000);
 
     })
     function move(i) {
@@ -219,6 +221,7 @@
             function frame() {
                 if (width <= 0) {
                     clearInterval(id);
+                    updateCharts()
                     i = 0;
                 } else {
                     width-=0.1;
@@ -243,7 +246,6 @@
     }
 
     function updateCharts() {
-        move(0)
         $('#canvas').empty()
         $.ajax({
             url: '/charts-infos',
@@ -281,6 +283,8 @@
             }
             config['data']['datasets'] = datasets
             window.myLine = new Chart(ctx, config);
+            move(0)
+
 
         })
     }
