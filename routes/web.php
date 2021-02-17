@@ -15,3 +15,4 @@ use Illuminate\Support\Facades\Route;
 */
 Route::get('/',[AppController::class, 'home']);
 Route::get('/charts-infos',[AppController::class, 'chartInfos']);
+Route::get('/thunes',[AppController::class,'thunes']);

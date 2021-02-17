@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Money;
 use Carbon\Carbon;
 use GuzzleHttp\Client;
 use Illuminate\Http\Request;
@@ -116,5 +117,9 @@ class AppController extends Controller
             $responses[$symbol]['last'] = array_slice($datas, -1);
         }
         return $responses;
+    }
+
+    public function thunes(){
+        return Money::all();
     }
 }
